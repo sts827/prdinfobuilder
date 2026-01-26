@@ -40,41 +40,35 @@ export async function POST(req: NextRequest) {
 
         // 2. Initialize AI Adapter
         const apiKey = process.env.GEMINI_API_KEY;
-        if (!apiKey) {
-            return NextResponse.json({ error: 'Server AI configuration missing' }, { status: 500 });
+        if (!apiKey || apiKey === 'your-gemini-api-key') {
+            return NextResponse.json({ error: 'Server AI configuration missing or invalid' }, { status: 500 });
         }
         const aiService = new GeminiAdapter(apiKey);
 
-        // 3. Execute AI Pipeline
-        // A. Remove Background (Gemini/Placeholder)
-        const bgRemovedImage = await aiService.removeBackground(imageUrl);
-
-        // B. Generate Backgrounds & Copy in parallel
-        const [backgrounds, copies] = await Promise.all([
+        // 3. Execute AI Pipeline in Parallel
+        // We run all independent tasks concurrently to reduce total wait time.
+        const [bgRemovedImage, backgrounds, copies] = await Promise.all([
+            aiService.removeBackground(imageUrl),
             aiService.generateBackgrounds(imageUrl, 10),
-            aiService.generateCopy(productName || 'Product'),
+            aiService.generateCopy(productName || 'Product')
         ]);
 
         // 4. Construct Response
-        // We combine backgrounds with the copy. 
-        // Since we have 10 BGs and 3 Copies, we can mix them randomly or just return lists.
-        // The frontend expects "Cards".
-
-        // Let's create card objects.
+        // Create card objects combining backgrounds and copy.
         const cards = backgrounds.map((bgUrl, index) => ({
             id: `card-${Date.now()}-${index}`,
-      imageUrl: bgUrl,
-      copy: copies[index % copies.length], // Cycle through copies
-      type: 'background'
-    }));
+            imageUrl: bgUrl,
+            copy: copies[index % copies.length] || 'Discover perfection.', // Fallback copy
+            type: 'background'
+        }));
 
-    return NextResponse.json({ 
-      cards,
-      processedImage: bgRemovedImage 
-    });
+        return NextResponse.json({
+            cards,
+            processedImage: bgRemovedImage
+        });
 
-  } catch (error) {
-    console.error('Generation Error:', error);
-    return NextResponse.json({ error: 'Failed to generate content' }, { status: 500 });
-  }
+    } catch (error) {
+        console.error('Generation Error:', error);
+        return NextResponse.json({ error: 'Failed to generate content' }, { status: 500 });
+    }
 }

@@ -20,4 +20,19 @@ export interface AIService {
      * @returns Array of marketing copy strings.
      */
     generateCopy(productName: string): Promise<string[]>;
+
+    /**
+     * Modify or enhance an image based on a user prompt.
+     * Returns a structured design edit (CSS filters, overlays, or new background descriptions).
+     * @param imageUrl The original image URL.
+     * @param prompt User's instruction (e.g. "Make it moody", "Add snowfall").
+     */
+    editImage(imageUrl: string, prompt: string): Promise<DesignEdit>;
+}
+
+export interface DesignEdit {
+    filters?: string; // CSS filter string (e.g. "contrast(1.2) sepia(0.5)")
+    overlay?: string; // CSS background/overlay (e.g. "linear-gradient(...)")
+    description?: string; // Text description of what was done
+    suggestedCopy?: string; // Optional new copy based on the edit
 }
