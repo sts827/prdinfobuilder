@@ -1,11 +1,16 @@
 version: '3'
 services:
   web:
-    build: .
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: npm run dev -- -H 0.0.0.0 -p 3000
     ports:
-      - "3000:3000"
+      - "3000:3000" # localhost만 명시적으로 허용
     volumes:
       - .:/app
       - /app/node_modules
     environment:
       - NODE_ENV=development
+      - WATCHPACK_POLLING=true
+      - WATCHPACK_POLLING_INTERVAL=500

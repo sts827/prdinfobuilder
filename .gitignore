@@ -35,3 +35,11 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 walkthrough.md
+
+
+# except
+log.md
+feedback.md
+DEPLOYMENT.md
+Dockerfile.prod
+docker-compose.prod.yml 
